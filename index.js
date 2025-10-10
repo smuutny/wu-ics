@@ -125,10 +125,16 @@ async function updateGist(content){
   const url = `https://api.github.com/gists/${GIST_ID}`;
   const res = await undiciRequest(url, {
     method: 'PATCH',
-    headers: { 'Authorization': `Bearer ${GIST_TOKEN}`, 'Accept': 'application/vnd.github+json' },
+    headers: {
+      'Authorization': `Bearer ${GIST_TOKEN}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      // 👇 wymagany przez GitHub REST
+      'User-Agent': 'wu-ics/1.0 (+https://github.com/smuutny/wu-ics)'
+    },
     body: JSON.stringify({ files: { 'varsovia-plan.ics': { content } } })
   });
-  if(res.statusCode >= 300){
+  if (res.statusCode >= 300) {
     const txt = await res.body.text();
     throw new Error(`Gist update failed: ${res.statusCode} ${txt}`);
   }

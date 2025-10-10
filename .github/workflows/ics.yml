@@ -1,0 +1,26 @@
+name: wu-ics
+on:
+  schedule:
+    - cron: "0 * * * *"   # co godzinę
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: |
+          npm ci || npm i
+          npm run install-playwright
+      - name: Build ICS
+        env:
+          WU_BASE_URL:     ${{ secrets.WU_BASE_URL }}
+          WU_USERNAME:     ${{ secrets.WU_USERNAME }}
+          WU_PASSWORD:     ${{ secrets.WU_PASSWORD }}
+          HARMONOGRAM_URL: ${{ secrets.HARMONOGRAM_URL }}
+          GIST_TOKEN:      ${{ secrets.GIST_TOKEN }}
+          GIST_ID:         ${{ secrets.GIST_ID }}
+        run: npm run build-ics

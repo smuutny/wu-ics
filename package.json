@@ -1,0 +1,13 @@
+{
+  "name": "wu-ics",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@playwright/test": "^1.47.2",
+    "undici": "^6.19.8"
+  },
+  "scripts": {
+    "build-ics": "node index.js",
+    "install-playwright": "npx playwright install --with-deps chromium"
+  }
+}

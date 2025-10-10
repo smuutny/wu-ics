@@ -105,7 +105,13 @@ function buildICS(events){
   let i=0;
   for(const e of events){
     const loc=[e.room,e.city].filter(Boolean).join(', ');
-    const title = e.title + (e.form?` (${e.form})`:'');
+    
+    // usuń ewentualne "(niestacjonarne)" z samego tytułu i nie doklejaj go z formy
+    let baseTitle = e.title.replace(/\s*\(niestacjonarne\)\s*$/i, '').trim();
+    const formRaw = (e.form || '').trim();
+    const shouldAppendForm = formRaw && !/niestacjon/i.test(formRaw);
+    const title = baseTitle + (shouldAppendForm ? ` (${formRaw})` : '');
+    
     const desc  = e.teach ? `Prowadzący: ${e.teach}` : '';
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:wu-${e.d.toISOString().slice(0,10)}-${pad2(e.st.h)}${pad2(e.st.mi)}-${i++}@gist`);

@@ -46,10 +46,36 @@ async function loginAndFetchJSON(){
   return data;
 }
 
-function toEvents(payload){
-  const rows = payload?.data || payload?.rows || payload || [];
+function toEvents(payload) {
+  // Uniwersalne wydobycie tablicy z dowolnej struktury obiektu
+  const seen = new Set();
+  function findArray(obj) {
+    if (!obj || typeof obj !== 'object') return [];
+    if (seen.has(obj)) return [];
+    seen.add(obj);
+
+    // typowe nazwy w Simple.Bazus
+    for (const key of ['data', 'rows', 'items', 'result', 'records']) {
+      if (Array.isArray(obj?.[key])) return obj[key];
+    }
+    // jeżeli obiekt sam w sobie jest tablicą
+    if (Array.isArray(obj)) return obj;
+
+    // skan po wszystkich własnych polach
+    for (const [k, v] of Object.entries(obj)) {
+      if (Array.isArray(v)) return v;
+      if (v && typeof v === 'object') {
+        const inner = findArray(v);
+        if (inner.length) return inner;
+      }
+    }
+    return [];
+  }
+
+  const rows = findArray(payload);
   const out = [];
-  for(const r of rows){
+
+  for (const r of rows) {
     const dRaw = r.termin || r.data || r.dataZajec || r.date;
     const sRaw = r.godzOd || r.od || r.start || r.godzinaOd;
     const eRaw = r.godzDo || r.do || r.end   || r.godzinaDo;
@@ -59,12 +85,16 @@ function toEvents(payload){
     const form = r.forma || r.typ || '';
     const teach= r.dydaktyk || r.prowadzacy || r.nauczyciel || '';
 
-    const d = parseDate(dRaw), st = parseTime(sRaw), en = parseTime(eRaw);
-    if(!d || !st || !en) continue;
+    const d  = parseDate(dRaw);
+    const st = parseTime(sRaw);
+    const en = parseTime(eRaw);
+    if (!d || !st || !en) continue;
+
     out.push({ d, st, en, title, room, city, form, teach });
   }
   return out;
 }
+
 
 function buildICS(events){
   const lines = [

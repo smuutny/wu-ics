@@ -143,32 +143,31 @@ function buildICS(events){
     'X-WR-CALNAME:Plan studiów (auto)', 'X-WR-TIMEZONE:Europe/Warsaw'
   ];
   for(const e of events){
-    // Jeśli w lokalizacji nie ma jeszcze sali, budujemy pełny adres
     const loc = [e.room, e.city].filter(Boolean).join(', ');
 
     const formRaw = (e.form || '').trim();
     const shouldAppendForm = formRaw && !/niestacjon/i.test(formRaw);
     
-    // Budowanie tytułu: jeśli zajęcia są odwołane, dodaj prefix
     let title = e.title + (shouldAppendForm ? ` (${formRaw})` : '');
     if (e.notes && /odwołane/i.test(e.notes)) {
       title = `❌ [ODWOŁANE] ${title}`;
     }
 
-    // Budowanie bogatszego opisu (DESCRIPTION)
+    // Każdy element czyścimy za pomocą esc() z osobna
     const descParts = [];
-    if (e.teach) descParts.push(`Prow.: ${e.teach}`);
-    if (e.room)  descParts.push(`Sala: ${e.room.trim()}`);
-    if (e.topic && e.topic.trim()) descParts.push(`Temat: ${e.topic.trim()}`);
-    if (e.notes && e.notes.trim()) descParts.push(`Uwagi: ${e.notes.trim()}`);
+    if (e.teach) descParts.push(`Prow.: ${esc(e.teach)}`);
+    if (e.room)  descParts.push(`Sala: ${esc(e.room.trim())}`);
+    if (e.topic && e.topic.trim()) descParts.push(`Temat: ${esc(e.topic.trim())}`);
+    if (e.notes && e.notes.trim()) descParts.push(`Uwagi: ${esc(e.notes.trim())}`);
     
-    const desc = descParts.join('\\n'); // '\\n' wymusza nową linię w formacie ICS
+    // Łączymy bezpośrednio znakiem nowej linii, który format ICS rozumie wewnątrz zmiennych
+    const desc = descParts.join('\n'); 
 
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${stableUid(e)}`);
     lines.push(`SUMMARY:${esc(title)}`);
     if(loc)  lines.push(`LOCATION:${esc(loc)}`);
-    if(desc) lines.push(`DESCRIPTION:${esc(desc)}`);
+    if(desc) lines.push(`DESCRIPTION:${desc}`); // USUNIĘTE esc() stąd, bo elementy są już bezpieczne
     lines.push(`DTSTART;TZID=${TZ}:${dtstr(e.d, e.st.h, e.st.mi)}`);
     lines.push(`DTEND;TZID=${TZ}:${dtstr(e.d, e.en.h, e.en.mi)}`);
     lines.push('BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY','DESCRIPTION:Przypomnienie','END:VALARM');

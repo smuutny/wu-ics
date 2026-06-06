@@ -154,9 +154,10 @@ function buildICS(events){
     }
 
     // 1. Zbieramy czyste, bezpieczne linijki tekstu
+    // Zbieramy czyste, bezpieczne linijki tekstu (usuwamy powtórzone słowo "Sala")
     const descParts = [];
     if (e.teach) descParts.push(`Prow.: ${esc(e.teach)}`);
-    if (e.room)  descParts.push(`Sala: ${esc(e.room.trim())}`);
+    if (e.room)  descParts.push(`Sala: ${esc(e.room.trim().replace(/^sala\s*/i, ''))}`);
     if (e.topic && e.topic.trim()) descParts.push(`Temat: ${esc(e.topic.trim())}`);
     if (e.notes && e.notes.trim()) descParts.push(`Uwagi: ${esc(e.notes.trim())}`);
     

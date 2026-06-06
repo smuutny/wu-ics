@@ -95,10 +95,14 @@ function toEvents(payload){
     const eRaw = r.godzDo || r.do || r.end   || r.godzinaDo;
 
     const title= r.nazwa || r.przedmiot || r.tytul || r.title || 'Zajęcia';
-    const room = r.sala || r.salaNazwa || '';
+    const room = r.sala || r.salaNazwa || r.nazwaSali || ''; // dodane r.nazwaSali
     const city = r.lokalizacja || r.miasto || '';
     const form = r.forma || r.typ || '';
     const teach= r.dydaktyk || r.prowadzacy || r.nauczyciel || '';
+    
+    // NOWE POLA:
+    const notes = r.uwagi || '';
+    const topic = r.temat || '';
 
     const d  = parseDate(dRaw);
     const st = parseTime(sRaw);
@@ -109,7 +113,9 @@ function toEvents(payload){
       title: stripNiestacjonarne(title),
       room, city,
       form: stripNiestacjonarne(form),
-      teach
+      teach,
+      notes, // dodane do obiektu
+      topic  // dodane do obiektu
     });
   }
   return out;

@@ -143,14 +143,26 @@ function buildICS(events){
     'X-WR-CALNAME:Plan studiów (auto)', 'X-WR-TIMEZONE:Europe/Warsaw'
   ];
   for(const e of events){
-    const loc=[e.room,e.city].filter(Boolean).join(', ');
+    // Jeśli w lokalizacji nie ma jeszcze sali, budujemy pełny adres
+    const loc = [e.room, e.city].filter(Boolean).join(', ');
 
-    // nie dopisujemy formy, jeśli to niestacjonarne; inne formy (np. online) zostawiamy
     const formRaw = (e.form || '').trim();
     const shouldAppendForm = formRaw && !/niestacjon/i.test(formRaw);
-    const title = e.title + (shouldAppendForm ? ` (${formRaw})` : '');
+    
+    // Budowanie tytułu: jeśli zajęcia są odwołane, dodaj prefix
+    let title = e.title + (shouldAppendForm ? ` (${formRaw})` : '');
+    if (e.notes && /odwołane/i.test(e.notes)) {
+      title = `❌ [ODWOŁANE] ${title}`;
+    }
 
-    const desc  = e.teach ? `Prowadzący: ${e.teach}` : '';
+    // Budowanie bogatszego opisu (DESCRIPTION)
+    const descParts = [];
+    if (e.teach) descParts.push(`Prow.: ${e.teach}`);
+    if (e.room)  descParts.push(`Sala: ${e.room.trim()}`);
+    if (e.topic && e.topic.trim()) descParts.push(`Temat: ${e.topic.trim()}`);
+    if (e.notes && e.notes.trim()) descParts.push(`Uwagi: ${e.notes.trim()}`);
+    
+    const desc = descParts.join('\\n'); // '\\n' wymusza nową linię w formacie ICS
 
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${stableUid(e)}`);
